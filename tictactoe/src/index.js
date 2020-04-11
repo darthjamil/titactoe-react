@@ -2,24 +2,51 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
-class Square extends React.Component {
-    render() {
-        return (
-            <button className="square">
-                {/* TODO */}
-            </button>
-        );
-    }
+function Square(props) {
+    return (
+        <button className="square" onClick={props.onClick}>
+            {props.value}
+        </button>
+    );
 }
 
 class Board extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            squares: Array(9).fill(null),
+            xIsNext: true,
+            isGameOver: false,
+        };
+    }
+
+    handleClick(i) {
+        if (this.state.squares[i] || this.state.isGameOver) {
+            return;
+        }
+
+        const squares = this.state.squares.slice();
+        squares[i] = this.state.xIsNext ? 'X' : 'O';
+
+        const isGameOver = calculateWinner(squares);
+
+        this.setState({
+            squares: squares,
+            xIsNext: !this.state.xIsNext,
+            isGameOver: isGameOver,
+        });
+    }
+
     renderSquare(i) {
-        return <Square />;
+        return <Square value={this.state.squares[i]} onClick={() => this.handleClick(i)} />;
     }
 
     render() {
-        const status = 'Next player: X';
-
+        const winner = calculateWinner(this.state.squares);
+        const winnerMessage = 'Winner: ' + winner;
+        const nextPlayerMessage = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+        const status = winner ? winnerMessage : nextPlayerMessage;
+        
         return (
             <div>
                 <div className="status">{status}</div>
@@ -57,6 +84,32 @@ class Game extends React.Component {
             </div>
         );
     }
+}
+
+function calculateWinner(squares) {
+    const winningPossibilities = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6],
+    ];
+
+    for (let possibility of winningPossibilities) {
+        const isWinner =
+            squares[possibility[0]] &&
+            squares[possibility[0]] === squares[possibility[1]] &&
+            squares[possibility[0]] === squares[possibility[2]];
+
+        if (isWinner) {
+            return squares[possibility[0]];
+        }
+    }
+
+    return null;
 }
 
 // ========================================
